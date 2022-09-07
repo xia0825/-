@@ -1,23 +1,10 @@
-import random
 from time import localtime
 from requests import get, post
 from datetime import datetime, date
 from zhdate import ZhDate
 import sys
 import os
-from lxml import etree
-import random
 import jsonpath
-
-
-def get_color():
-    # 获取随机颜色
-    color = '#'
-    list1 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
-    for i in range(6):
-        color_str = random.choice(list1)
-        color += color_str
-    return color
 
 
 def get_access_token():
@@ -33,7 +20,6 @@ def get_access_token():
         print("获取access_token失败，请检查app_id和app_secret是否正确")
         os.system("pause")
         sys.exit(1)
-    # print(access_token)
     return access_token
 
 
@@ -65,10 +51,11 @@ def get_weather(region):
     weather_warning_response = get(weather_warning_url, headers=headers).json()
     waring_title = jsonpath.jsonpath(weather_warning_response, '$..title')
 
-    if len(waring_title) == 0:
-        waring_title = '暂无恶劣天气信息'
+    if waring_title == False:
+        waring_title = '暂无预警'
     else:
         waring_title = waring_title[0]
+    print(waring_title)
     # 天气
     weather = response["now"]["text"]
     # 当前温度
@@ -132,19 +119,12 @@ def get_birthday(birthday, year, today):
 def get_ciba():
     """美句函数"""
     url = "http://open.iciba.com/dsapi/"
-    # url = "https://www.wenanwang.com/qg/1704.html"
     headers = {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
                       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36'
     }
     r = get(url, headers=headers)
-    # r = get(url, headers=headers).content.decode('utf-8')
-    # xpath_html = etree.HTML(r)
-    # sentent_list = xpath_html.xpath('//*[@id="ML"]/div[1]/div[2]/p/text()')
-    # sentent = random.choice(sentent_list)
-    # print(sentent)
-
     note_en = r.json()["content"]
     note_ch = r.json()["note"]
     return note_ch, note_en
@@ -256,6 +236,7 @@ def send_message(to_user, access_token, region_name, weather, temp, wind_dir, cy
 
 
 if __name__ == "__main__":
+
     try:
         with open("config.txt", encoding="utf-8") as f:
             config = eval(f.read())
@@ -275,8 +256,7 @@ if __name__ == "__main__":
     # 传入地区获取天气信息
     region = config["region"]
     weather, temp, wind_dir, cy_suggestion, zwx_suggestion, gm_suggestion, hz_suggestion, fs_suggestion, waring_title \
-        , location_id = get_weather(
-        region)
+        , location_id = get_weather(region)
     note_ch = config["note_ch"]
     note_en = config["note_en"]
     if note_ch == "" and note_en == "":
